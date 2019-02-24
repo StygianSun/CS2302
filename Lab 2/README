@@ -1,0 +1,4 @@
+4 different search methods implement
+Code at bottom prints unsorted array,
+the median for each different search method followed by the number of comparisons made,
+then prints the sorted array
