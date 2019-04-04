@@ -1,4 +1,5 @@
 # Implementation of hash tables with chaining using strings
+import numpy as np
 
 class HashTableC(object):
     # Builds a hash table of size 'size'
@@ -32,7 +33,7 @@ def h(s,n):
     """
     r = 0
     for c in s:
-        r = (r*50 + ord(c))% n
+        r = (r*255 + ord(c))% n
     return r
 
 def load(H):
@@ -51,3 +52,12 @@ def empty(H):
         if len(H.item[i]) == 0:
             e += 1
     return (e/len(H.item))*100
+
+def standDev(H):
+    """
+    Calculates standard deviation of the length of lists
+    """
+    lengths = []
+    for b in H.item:
+        lengths.append(len(b))
+    return np.std(lengths)

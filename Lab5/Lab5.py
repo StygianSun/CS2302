@@ -117,6 +117,7 @@ def HashQuery():
     print("Final Table Size: ",len(H.item))
     print("Load factor: ",round(HashString.load(H),2))
     print("Percentage of Empty Lists: ",round(HashString.empty(H),2),"%")
+    print("Standard deviation of the lengths of the lists: ",round(HashString.standDev(H),3))
     print("Running time for hash table construction: ",round(elapsed,2)," seconds",end="\n\n")
     print("Reading word file to determine similarities.",end="\n\n")
     comp = open("comparisons.txt")
