@@ -20,8 +20,7 @@ import numpy as np
 import random
 from scipy import interpolate 
 
-def draw_maze(walls,maze_rows,maze_cols,cell_nums=False):
-    fig, ax = plt.subplots()
+def draw_maze(ax,walls,maze_rows,maze_cols,cell_nums=False):
     for w in walls:
         if w[1]-w[0] ==1: #vertical wall
             x0 = (w[1]%maze_cols)
@@ -166,13 +165,13 @@ def maze(remove):
         if union_by_size(mazeDSF,walls[d][0],walls[d][1]):
             remove -= 1
             adjList[walls[d][0]].append(walls[d][1])
-            #adjList[walls[d][1]].append(walls[d][0])
+            adjList[walls[d][1]].append(walls[d][0])
             walls.pop(d)
     while remove > 0:
         d = random.randint(0,len(walls)-1)
         remove -= 1
         adjList[walls[d][0]].append(walls[d][1])
-        #adjList[walls[d][1]].append(walls[d][0])
+        adjList[walls[d][1]].append(walls[d][0])
         walls.pop(d)    
     return adjList
 
@@ -185,6 +184,57 @@ def printPath(path,v):
         print(' -> ',end='')
     print(v,end='')
     
+def checkPath(path,v):
+    if path[v] != -1:
+        return checkPath(path,path[v])
+    if v == 0:
+        return True
+
+    
+def drawPath(path,rows,cols,v,ax):
+    """
+    Draws the appropriate path to take to solve the maze
+    """
+    if path[v] != -1 and path[path[v]] != -1:
+        #print("path[v]=",path[v])
+        #print("path[path[v]]=",path[path[v]])
+        #print("path[v]-path[path[v]]=",path[v]-path[path[v]])
+        #print()
+        drawPath(path,rows,cols,path[v],ax)
+        if path[v] - path[path[v]] == 1: #horizontal path going from right to left
+            x0 = (path[v]%cols)-0.5
+            x1 = x0+1
+            y0 = (path[v]//cols)+0.5
+            y1 = y0
+        elif path[v] - path[path[v]] == -1: #horizontal path going from left to right
+            x0 = (path[path[v]]%cols)-0.5
+            x1 = x0+1
+            y0 = (path[path[v]]//cols)+0.5
+            y1 = y0
+        elif path[v] - path[path[v]] > 1: #vertical path going from top to bottom
+            x0 = (path[v]%cols)+0.5
+            x1 = x0
+            y0 = (path[v]//cols)-0.5
+            y1 = y0+1
+        else:                             #vertical path going from bottom to top
+            x0 = (path[path[v]]%cols)+0.5
+            x1 = x0
+            y0 = (path[path[v]]//cols)-0.5
+            y1 = y0+1
+        ax.plot([x0,x1],[y0,y1],linewidth=1,color='red')
+    if v == len(path)-1:
+        if v - path[v] == 1: #horizontal path
+            x0 = (v%cols)-0.5
+            x1 = x0+1
+            y0 = (v//cols)+0.5
+            y1 = y0
+        else: #vertical path
+            x0 = (v%cols)+0.5
+            x1 = x0
+            y0 = (v//cols)-0.5
+            y1 = y0+1
+        ax.plot([x0,x1],[y0,y1],linewidth=1,color='red')
+        
 
 def breadthFirst(adjList):
     """
@@ -246,7 +296,8 @@ def depthFirstR(adjList,v):
             depthFirstR(adjList,adj)
     return prev
             
-plt.close("all") 
+plt.close("all")
+fig, ax = plt.subplots() 
 """
 Queries for input on maze construction
 """
@@ -272,9 +323,8 @@ Maze construction and drawing
 """
 walls = wall_list(rows,cols)
 mazeDSF = DisjointSetForest(rows*cols) 
-draw_maze(walls,rows,cols,cell_nums=True)
 adjList = maze(remove)
-draw_maze(walls,rows,cols)
+draw_maze(ax,walls,rows,cols)
 """
 Queries for input on which pathfinding algorithm to use to solve the maze
 """
@@ -282,16 +332,29 @@ print("Choose pathfinding algorithm")
 choice = input("Type 1 for breadth first, 2 for depth first, or 3 for recursive depth first:")
 if choice== "1":
     path = breadthFirst(adjList)
-    printPath(path,len(adjList)-1)
-    print()
+    if checkPath(path,len(path)-1):
+        printPath(path,len(path)-1)
+        drawPath(path,rows,cols,len(path)-1,ax)
+        print()
+    else:
+        print("Path not possible.")
 elif choice == "2":
     path = depthFirst(adjList)
-    printPath(path,len(adjList)-1)
+    if checkPath(path,len(path)-1):
+        printPath(path,len(adjList)-1)
+        drawPath(path,rows,cols,len(adjList)-1,ax)
+        print()
+    else:
+        print("Path not possible.")
 elif choice == "3":
     visited = np.full(len(adjList),False,dtype=bool)
     prev = np.zeros(len(adjList),dtype=int)-1
     path = depthFirstR(adjList,0)
-    printPath(path,len(adjList)-1)
-    print()
+    if checkPath(path,len(path)-1):
+        printPath(path,len(adjList)-1)
+        drawPath(path,rows,cols,len(adjList)-1,ax)
+        print()
+    else:
+        print("Path not possible.")
 else:
     print("Input not recognized, please try again.") 
